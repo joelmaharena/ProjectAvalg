@@ -72,7 +72,8 @@ void construct_matrix()
 }
 void set_neightbours(int p)
 {
-	int thresh = min(10, N-1);
+	int min_neighbours = 30;
+	int thresh = min(min_neighbours, N-1);
 
 	vector<tuple<double, int>> distances;
 	distances.reserve(N);
