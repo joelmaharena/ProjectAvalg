@@ -7,21 +7,21 @@ using namespace std;
 
 struct Point
 {
-	float x;
-	float y;
+	double x;
+	double y;
 	vector<int> neightbours;
 	Point() = default;
-	Point(float x, float y) : x(x), y(y) {}
+	Point(double x, double y) : x(x), y(y) {}
 };
 
-float dist(Point p1, Point p2)
+double dist(Point p1, Point p2)
 {
-	int dx = p1.x - p2.x;
-	int dy = p1.y - p2.y;
+	double dx = p1.x - p2.x;
+	double dy = p1.y - p2.y;
 	return sqrt(pow(dx, 2) + pow(dy, 2));
 }
 int N;
-vector<vector<float>> DIST_MATRIX;
+vector<vector<double>> DIST_MATRIX;
 vector<Point> POINTS;
 
 vector<int> greedy_tour()
@@ -48,7 +48,7 @@ vector<int> greedy_tour()
 }
 void read_input()
 {
-	float x, y = 0;
+	double x, y = 0;
 
 	cin >> N;
 	while (cin >> x >> y)
@@ -63,7 +63,7 @@ void read_input()
 void construct_matrix()
 {
 
-	DIST_MATRIX.assign(N, vector<float>(N));
+	DIST_MATRIX.assign(N, vector<double>(N));
       for (int i = 0; i < N; i++){
           for (int j = 0; j < N; j++){
               DIST_MATRIX[i][j] = dist(POINTS[i], POINTS[j]);
@@ -72,9 +72,9 @@ void construct_matrix()
 }
 void set_neightbours(int p)
 {
-	int thresh = min(10, N);
+	int thresh = min(10, N-1);
 
-	vector<tuple<float, int>> distances;
+	vector<tuple<double, int>> distances;
 	distances.reserve(N);
 	for (int i = 0; i < N; i++)
 		if (i != p)
@@ -124,10 +124,10 @@ vector<int> opt_alg(vector<int> tour)
 				if (c4 == c1)
 					continue;
 
-				float removed = DIST_MATRIX[c1][c2] + DIST_MATRIX[c3][c4];
-				float added = DIST_MATRIX[c1][c3] + DIST_MATRIX[c2][c4];
+				double removed = DIST_MATRIX[c1][c2] + DIST_MATRIX[c3][c4];
+				double added = DIST_MATRIX[c1][c3] + DIST_MATRIX[c2][c4];
 
-				if (removed - added > 1e-6f)
+				if (removed - added > 1e-6)
 				{
 					// 2-opt move: reverse the tour segment between the two
 					// broken edges, i.e. slots (lo+1 .. hi)
@@ -145,13 +145,15 @@ vector<int> opt_alg(vector<int> tour)
 	}
 	return tour;
 }
-float total_length(vector<int> tour){
-	int sum = 0;
+double total_length(vector<int> tour){
+	double sum = 0;
 	int prev = tour[0];
 	for (size_t i = 0; i < tour.size(); i++)
 	{
-		sum += dist(POINTS[prev] , POINTS[i]);
-
+		int cur = tour[i];
+		sum += DIST_MATRIX[prev][cur];
+		// sum += dist(POINTS[prev] , POINTS[tour[i]]);
+		prev = tour[i];
 	}
 	return sum;
 }
@@ -161,16 +163,23 @@ int main()
 	read_input();
 	vector<int> tour = greedy_tour();
 	construct_matrix();
-	for (size_t i = 0; i < tour.size(); i++)
-	{
-		cout << tour[i] << endl;
-	}
-	cout << "Total lenght : " << total_length(tour) << endl;
-	cout << "-----------------OPT-------------" << endl;
+
+	// Comment out before submitting to avoid printing the tour and its length
+	// for (size_t i = 0; i < tour.size(); i++)
+	// {
+	// 	cout << tour[i] << endl;
+	// }
+	// cout << "Total lenght : " << total_length(tour) << endl;
+	// cout << "-----------------OPT-------------" << endl;
+	// This ends comment block before submitting to avoid printing the tour and its length
+
+
 	vector<int> opt = opt_alg(tour);
 	for (size_t i = 0; i < opt.size(); i++)
 	{
 		cout << opt[i] << endl;
 	}
-	cout << "Total lenght : " << total_length(opt) << endl;
+
+	// this Line also needs to be commented out before submitting to avoid printing the length
+	// cout << "Total lenght : " << total_length(opt) << endl;
 }
