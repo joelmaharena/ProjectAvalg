@@ -49,7 +49,7 @@ vector<vector<int>> greedy_tour()
 	double best_len = 32983298;
 	vector<int> tour(N);
 	vector<bool> used(N);
-	int z = min(27, N);
+	int z = min(110, N);
 	vector<vector<int>> tours;
 	for (size_t a = 0; a < z; a++) {
 		fill(used.begin(), used.end(), false);	
@@ -99,7 +99,7 @@ void construct_matrix()
 }
 void set_neighbours(int p)
 {
-	int min_neighbours = 70;
+	int min_neighbours = 20;
 	int thresh = min(min_neighbours, N-1);
 
 	vector<tuple<double, int>> distances;
@@ -114,11 +114,6 @@ void set_neighbours(int p)
 	for (int i = 0; i < thresh; i++)
 		POINTS[p].neighbours.push_back(get<1>(distances[i]));
 }
-
-// vector<int> finetune(vector<int> tour) {
-//
-// }
-
 
 
 vector<int> opt_alg(vector<int> tour)
@@ -245,7 +240,7 @@ int main()
 			}	
 		}
 	}
-	best_opt = second_run(best_opt, best_len, 30);
+	best_opt = second_run(best_opt, best_len, 850);
 	for (size_t i = 0; i < best_opt.size(); i++)
 	{
 		cout << best_opt[i] << endl;
