@@ -7,7 +7,7 @@ import time
  
 from greedy_tcp import greedy_tour
  
-src = "tsp.cpp" # the cpp file holding the opt algorithm
+src = "val.cpp" # the cpp file holding the opt algorithm
 
 # compile the C++ code
 subprocess.run(["g++", "-O2", "-std=c++17", "-o", "tsp_bin", src], check=True)

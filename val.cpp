@@ -3,6 +3,7 @@
 #include <vector>
 #include <math.h>
 #include <algorithm>
+#include <limits>
 #include <random>
 using namespace std;
 
@@ -35,18 +36,17 @@ double total_length(const vector<int>& tour){
 		// sum += dist(POINTS[prev] , POINTS[tour[i]]);
 		prev = tour[i];
 	}
+	sum += DIST_MATRIX[prev][tour[0]];
 	return sum;
 }
 
 
 vector<vector<int>> greedy_tour()
 {
-	std:mt19937 generator(42);
+	std::mt19937 generator(42);
 	vector<int> starts(N);
 	iota(starts.begin(), starts.end(), 0);
 	shuffle(starts.begin(), starts.end(), generator);
-	std::uniform_int_distribution<int> distribution(0, N - 1);
-	double best_len = 32983298;
 	vector<int> tour(N);
 	vector<bool> used(N);
 	int z = min(110, N);
@@ -173,7 +173,7 @@ void brute_force(vector<int> & tour) {
 	for (int i = 0; i < N; i++) {
 		other_cities[i] = i ;
 	}
-	double best_len = 93293;
+	double best_len = numeric_limits<double>::max();
 	while(next_permutation(other_cities.begin(), other_cities.end())) {
 		double len = total_length(other_cities);
 		if(len < best_len) {
@@ -239,8 +239,8 @@ int main()
 				best_len = len;
 			}	
 		}
+		best_opt = second_run(best_opt, best_len, 850);
 	}
-	best_opt = second_run(best_opt, best_len, 850);
 	for (size_t i = 0; i < best_opt.size(); i++)
 	{
 		cout << best_opt[i] << endl;
