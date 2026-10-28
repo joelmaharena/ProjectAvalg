@@ -3,18 +3,19 @@
 #include <vector>
 #include <math.h>
 #include <algorithm>
+#include <random>
 using namespace std;
 
 struct Point
 {
 	double x;
 	double y;
-	vector<int> neightbours;
+	vector<int> neighbours;
 	Point() = default;
 	Point(double x, double y) : x(x), y(y) {}
 };
 
-double dist(Point p1, Point p2)
+double dist(Point& p1, Point& p2)
 {
 	double dx = p1.x - p2.x;
 	double dy = p1.y - p2.y;
@@ -24,27 +25,53 @@ int N;
 vector<vector<double>> DIST_MATRIX;
 vector<Point> POINTS;
 
-vector<int> greedy_tour()
-{
+double total_length(const vector<int>& tour){
+	double sum = 0;
+	int prev = tour.back();
+	for (size_t i = 0; i < tour.size(); i++)
+	{
+		int cur = tour[i];
+		sum += DIST_MATRIX[prev][cur];
+		// sum += dist(POINTS[prev] , POINTS[tour[i]]);
+		prev = tour[i];
+	}
+	return sum;
+}
 
+
+vector<vector<int>> greedy_tour()
+{
+	std:mt19937 generator(42);
+	vector<int> starts(N);
+	iota(starts.begin(), starts.end(), 0);
+	shuffle(starts.begin(), starts.end(), generator);
+	std::uniform_int_distribution<int> distribution(0, N - 1);
+	double best_len = 32983298;
 	vector<int> tour(N);
 	vector<bool> used(N);
-	tour[0] = 0;
-	used[0] = true;
-	for (size_t i = 1; i < N; i++)
-	{
-		int best = -1;
-		for (size_t j = 0; j < N; j++)
+	int z = min(27, N);
+	vector<vector<int>> tours;
+	for (size_t a = 0; a < z; a++) {
+		fill(used.begin(), used.end(), false);	
+		int random_num = starts[a];
+		tour[0] = random_num;
+		used[random_num] = true;
+		for (size_t i = 1; i < N; i++)
 		{
-			if (!used[j] && (best == -1 || dist(POINTS[tour[i - 1]], POINTS[j]) < dist(POINTS[tour[i - 1]], POINTS[best])))
+			int best = -1;
+			for (size_t j = 0; j < N; j++)
 			{
-				best = j;
+				if (!used[j] && (best == -1 || DIST_MATRIX[tour[i - 1]][j] < DIST_MATRIX[tour[i - 1]][best]))
+				{
+					best = j;
+				}
 			}
+			tour[i] = best;
+			used[best] = true;
 		}
-		tour[i] = best;
-		used[best] = true;
+		tours.push_back(tour);
 	}
-	return tour;
+	return tours;
 }
 void read_input()
 {
@@ -70,9 +97,9 @@ void construct_matrix()
 		}
 	}
 }
-void set_neightbours(int p)
+void set_neighbours(int p)
 {
-	int min_neighbours = 30;
+	int min_neighbours = 70;
 	int thresh = min(min_neighbours, N-1);
 
 	vector<tuple<double, int>> distances;
@@ -81,12 +108,19 @@ void set_neightbours(int p)
 		if (i != p)
 			distances.push_back({DIST_MATRIX[p][i], i});
 
-	sort(distances.begin(), distances.end());
+	partial_sort(distances.begin(), distances.begin() + thresh, distances.end());
 
-	POINTS[p].neightbours.clear();
+	POINTS[p].neighbours.clear();
 	for (int i = 0; i < thresh; i++)
-		POINTS[p].neightbours.push_back(get<1>(distances[i]));
+		POINTS[p].neighbours.push_back(get<1>(distances[i]));
 }
+
+// vector<int> finetune(vector<int> tour) {
+//
+// }
+
+
+
 vector<int> opt_alg(vector<int> tour)
 {
 	int n = tour.size();
@@ -96,9 +130,7 @@ vector<int> opt_alg(vector<int> tour)
 	for (int i = 0; i < n; i++)
 		pos[tour[i]] = i;
 
-	// precompute each city's nearest-neighbour candidate list once
-	for (int c = 0; c < n; c++)
-		set_neightbours(c);
+	// precompute each city's nearest-neighbour tour list once
 
 	bool improved = true;
 	while (improved)
@@ -109,17 +141,10 @@ vector<int> opt_alg(vector<int> tour)
 			int c1 = tour[i];
 			int c2 = tour[(i + 1) % n]; // successor of c1 (wraps at the end)
 
-			for (int c3 : POINTS[c1].neightbours)
+			for (int c3 : POINTS[c1].neighbours)
 			{
 				if (c3 == c2)
 					continue;
-
-				// neighbours are sorted by distance: once the candidate edge
-				// (c1,c3) is no shorter than the edge we'd remove (c1,c2),
-				// no forward 2-opt move through c1 can improve -> stop early
-				if (DIST_MATRIX[c1][c3] >= DIST_MATRIX[c1][c2])
-					break;
-
 				int j = pos[c3];
 				int c4 = tour[(j + 1) % n]; // successor of c3
 				if (c4 == c1)
@@ -146,41 +171,87 @@ vector<int> opt_alg(vector<int> tour)
 	}
 	return tour;
 }
-double total_length(vector<int> tour){
-	double sum = 0;
-	int prev = tour[0];
-	for (size_t i = 0; i < tour.size(); i++)
-	{
-		int cur = tour[i];
-		sum += DIST_MATRIX[prev][cur];
-		// sum += dist(POINTS[prev] , POINTS[tour[i]]);
-		prev = tour[i];
+
+void brute_force(vector<int> & tour) {
+	tour[0] = 0;
+	vector<int> other_cities(N);
+	for (int i = 0; i < N; i++) {
+		other_cities[i] = i ;
 	}
-	return sum;
+	double best_len = 93293;
+	while(next_permutation(other_cities.begin(), other_cities.end())) {
+		double len = total_length(other_cities);
+		if(len < best_len) {
+			best_len = len;
+			tour = other_cities;
+		}
+	}
+}
+
+
+vector<int> second_run(vector<int> best, double len, int attempts) {
+	double best_len = len;
+	mt19937 generator(43);
+	vector<int> pos(best.size());
+	iota(pos.begin(), pos.end(), 0);
+
+	for (int i = 0; i < attempts; i++) {
+		vector<int> tour = best;
+
+		shuffle(pos.begin(), pos.end(), generator);
+
+		swap(tour[pos[0]], tour[pos[1]]);
+		swap(tour[pos[2]], tour[pos[3]]);
+
+		tour = opt_alg(tour);
+		double len = total_length(tour);
+		if(len < best_len) {
+			best_len = len;
+			best = tour;
+		}
+	}
+
+	return best;
 }
 
 int main()
 {
 	read_input();
-	vector<int> tour = greedy_tour();
 	construct_matrix();
+	vector<vector<int>> tours = greedy_tour();
 
-	// Comment out before submitting to avoid printing the tour and its length
+	//Comment out before submitting to avoid printing the tour and its length
 	// for (size_t i = 0; i < tour.size(); i++)
 	// {
 	// 	cout << tour[i] << endl;
 	// }
 	// cout << "Total lenght : " << total_length(tour) << endl;
 	// cout << "-----------------OPT-------------" << endl;
-	// This ends comment block before submitting to avoid printing the tour and its length
-
-
-	vector<int> opt = opt_alg(tour);
-	for (size_t i = 0; i < opt.size(); i++)
+	//This ends comment block before submitting to avoid printing the tour and its length
+	vector<int> opt(N), best_opt(N);
+	double best_len = 9329392393;
+	if(N < 12) {
+		brute_force(best_opt);
+	} else {
+		for (int c = 0; c < N; c++)
+			set_neighbours(c);
+		for (auto& tour: tours) {
+		
+			opt = opt_alg(tour);
+			double len = total_length(opt);
+			if(len < best_len) {
+				best_opt = opt;
+				best_len = len;
+			}	
+		}
+	}
+	best_opt = second_run(best_opt, best_len, 30);
+	for (size_t i = 0; i < best_opt.size(); i++)
 	{
-		cout << opt[i] << endl;
+		cout << best_opt[i] << endl;
 	}
 
 	// this Line also needs to be commented out before submitting to avoid printing the length
 	// cout << "Total lenght : " << total_length(opt) << endl;
 }
+
